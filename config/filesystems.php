@@ -69,9 +69,9 @@ return [
             'visibility' => 'public',
         ],
 
-        'curriculums' => [
+        'contactos' => [
             'driver' => 'local',
-            'root' => storage_path('app/noticias'),
+            'root' => storage_path('app/contactos'),
             'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
         ],

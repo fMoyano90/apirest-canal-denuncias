@@ -13,6 +13,17 @@ class UserController extends Controller
         return "Acción de pruebas de USER-CONTROLLER";
     }
 
+    public function index()
+    {
+        $users = User::get();
+
+        return response()->json([
+            'code' => 200,
+            'status' => 'success',
+            'usuarios' => $users
+        ], 200);
+    }
+
     public function register(Request $request)
     {
         // Recoger los datos del usuario por post 
@@ -100,8 +111,8 @@ class UserController extends Controller
             // Devolver token o datos
             $signup = $jwtAuth->signup($params->email, $pwd);
 
-            if (!empty($param->gettoken)) {
-                $signup ==  $jwtAuth->signup($params->email, $pwd, true);
+            if (!empty($params->gettoken)) {
+                $signup =  $jwtAuth->signup($params->email, $pwd, true);
             }
         }
 
@@ -109,47 +120,41 @@ class UserController extends Controller
     }
 
 
-    public function update(Request $request)
+    public function update($id, Request $request)
     {
-        // Comprobar si el usuario esta identificado 
-        $token = $request->header('Authorization');
-        $jwtAuth = new \JwtAuth();
-        $checkToken = $jwtAuth->checkToken($token);
-
         // Recoger los datos por post 
         $json = $request->input('json', null);
         $params_array = json_decode($json, true);
 
-        if ($checkToken && !empty($params_array)) {
-            // Sacar usuario identificado 
-            $user = $jwtAuth->checkToken($token, true);
+        $data = array(
+            'code' => 400,
+            'status' => 'error',
+            'message' => 'Datos enviados incorrectos'
+        );
+
+        if (!empty($params_array)) {
 
             // Validar datos 
             $validate = \Validator::make($params_array, [
-                'name' => 'required|alpha',
-                'surname' => 'required|alpha',
-                'email' => 'required|email|unique:users,' . $user->sub
+                'role'    => 'required'
             ]);
-
-            // Quitar los campos que no se deben actualizar 
-            unset($params_array['id']);
-            unset($params_array['password']);
+            if ($validate->fails()) {
+                $data['errors'] =  $validate->errors();
+                return response()->json($data, $data['code']);
+            }
+            // Eliminar los que no queremos actualizar
             unset($params_array['created_at']);
-            unset($params_array['remember_token']);
-            // Actualizar usuario en  BBDD 
-            $user_update = User::where('id', $user->sub)->update($params_array);
-            // Devolver array con resultado 
+            unset($params_array['id']);
+
+            // Actualizar el registro en concreto 
+            $usuario = User::where('id', $id)->update($params_array);
+
+            // Devolver algo 
             $data = array(
                 'code' => 200,
                 'status' => 'success',
-                'user' => $user,
-                'changes' => $params_array
-            );
-        } else {
-            $data = array(
-                'code' => 400,
-                'status' => 'error',
-                'message' => 'El usuario no está identificado.'
+                'usuario' => $usuario,
+                'cambios' => $params_array
             );
         }
 
@@ -204,5 +209,19 @@ class UserController extends Controller
 
             return response()->json($data, $data['code']);
         }
+    }
+
+       public function destroy($id, Request $request)
+    {
+        // Comprobar si existe el usuario
+        $usuario = User::find($id);
+        $usuario->delete();
+        $data = array(
+            'code' => 200,
+            'status' => 'success',
+            'usuario' => $usuario
+        );
+
+        return response()->json($data, $data['code']);
     }
 }

@@ -16,7 +16,7 @@ class NoticiaController extends Controller
 
     public function index()
     {
-        $noticias = Noticia::where('principal', 0)->get();
+        $noticias = Noticia::where('principal', 0)->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'code' => 200,
@@ -69,13 +69,14 @@ class NoticiaController extends Controller
                 $data = array(
                     'code' => 400,
                     'status' => 'error',
-                    'messge' => 'No se ha guardado la noticia, faltan datos.'
+                    'message' => 'No se ha guardado la noticia, faltan datos.'
                 );
             } else {
                 // Guardar articulo 
                 $noticia = new Noticia();
                 $noticia->categoria = $params->categoria;
                 $noticia->titulo    = $params->titulo;
+                $noticia->descripcion    = $params->descripcion;
                 $noticia->cuerpo    = $params->cuerpo;
                 $noticia->imagen    = $params->imagen;
                 $noticia->principal = $params->principal;
@@ -84,7 +85,7 @@ class NoticiaController extends Controller
 
                 $data = array(
                     'code' => 200,
-                    'status' => 'Success',
+                    'status' => 'success',
                     'noticia' => $noticia
                 );
             }
@@ -92,7 +93,7 @@ class NoticiaController extends Controller
             $data = array(
                 'code' => 400,
                 'status' => 'error',
-                'messge' => 'Envia los datos correctamente.'
+                'message' => 'Envia los datos correctamente.'
             );
         }
 
@@ -193,7 +194,7 @@ class NoticiaController extends Controller
             $data = [
                 'code' => 200,
                 'status' => 'success',
-                'image' => $image_name
+                'imagen' => $image_name
             ];
         }
 
